@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="robots" content="index, follow">
+    
+    <title>Yamabiko Loop - クラウドファンディング商品セレクト</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           ★ デザイン設定（色・フォント）
+           ここでサイト全体の色味を変更できます
+           ========================================================================== */
+        :root {
+            /* 背景色（基本は白） */
+            --bg-color: #ffffff;
+            
+            /* 文字色（基本は濃いグレー） */
+            --text-color: #1a1a1a;
+            
+            /* アクセント背景色（セクションの背景などで使用する薄いグレー） */
+            --accent-gray: #f2f2f2;
+            
+            /* 線の色（区切り線など） */
+            --line-color: #e0e0e0;
+        }
+
+        /* 基本設定 */
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Lato', 'Shippori Mincho', serif;
+            color: var(--text-color);
+            background: var(--bg-color);
+            line-height: 2;
+        }
+        h1, h2, h3 { font-weight: 400; margin: 0; line-height: 1.2; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+        /* Language Switcher */
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 12px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .lang-switch a {
+            text-decoration: none;
+            color: #888;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .lang-switch a:hover {
+            color: #333;
+        }
+        .lang-switch a.active {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        /* * ヒーローエリア 
+         */
+        header {
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        .hero-title {
+            font-size: 4rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .hero-sub {
+            font-size: 1rem;
+            color: #888;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.3s;
+        }
+        
+        /* スクロールダウン表示 */
+        .scroll-indicator {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            height: 60px; width: 1px; background: #ddd; overflow: hidden;
+        }
+        .scroll-indicator::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: #000; animation: scrollDown 2s infinite;
+        }
+        @keyframes scrollDown { 0% { top: -100%; } 100% { top: 100%; } }
+
+        /* * コンテンツエリア 
+         */
+        .section { padding: 10rem 0; }
+        .section-gray { background-color: var(--accent-gray); }
+
+        .about-wrap {
+            max-width: 800px; margin: 0 auto; text-align: center;
+        }
+        .about-title {
+            font-size: 2rem; margin-bottom: 3rem;
+            position: relative; display: inline-block;
+        }
+        .about-title::after {
+            content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 1px; background: #000;
+        }
+        .about-text { text-align: left; text-align-last: left; font-size: 1.1rem; }
+
+        /* * ワークス（リスト表示） 
+         */
+        .work-list { border-top: 1px solid var(--line-color); }
+        .work-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--line-color);
+            cursor: pointer;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .work-item:hover { background: #fafafa; }
+        
+        .work-meta { flex: 1; }
+        .work-year { font-size: 0.9rem; color: #999; margin-bottom: 0.5rem; display: block; }
+        .work-title { font-size: 2rem; font-family: 'Shippori Mincho', serif; transition: 0.3s; }
+        .work-item:hover .work-title { padding-left: 20px; }
+        
+        .work-cat { 
+            font-size: 0.9rem; border: 1px solid #ddd; padding: 0.5rem 1.5rem; border-radius: 50px;
+            transition: 0.3s;
+        }
+        .work-item:hover .work-cat { background: #000; color: #fff; border-color: #000; }
+
+        /* アコーディオン */
+        .work-item-wrapper { border-bottom: 1px solid var(--line-color); }
+        .work-item { border-bottom: none; }
+        .work-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            padding: 0 0;
+            background: #fafafa;
+        }
+        .work-item-wrapper.open .work-detail {
+            max-height: 800px;
+            padding: 2rem 0;
+        }
+        .work-detail-inner {
+            padding: 0 2rem;
+            line-height: 2;
+        }
+        .work-detail-img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .work-item-wrapper.open .work-cat { background: #000; color: #fff; border-color: #000; }
+
+        /* * 会社概要エリア
+         */
+        .company-dl {
+            max-width: 800px; margin: 0 auto;
+            display: flex; flex-wrap: wrap;
+            border-top: 1px solid var(--line-color);
+        }
+        .company-dl dt {
+            width: 30%; padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+            font-weight: bold;
+        }
+        .company-dl dd {
+            width: 70%; margin: 0; padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+        }
+        @media (max-width: 768px) {
+            .company-dl dt, .company-dl dd { width: 100%; padding: 1rem 0; border: none; }
+            .company-dl dt { margin-top: 1rem; border-top: 1px solid #eee; }
+            .company-dl dd { border-bottom: 1px solid var(--line-color); }
+        }
+
+        /* 要素の出現アニメーション用クラス */
+        .fade-in-up {
+            opacity: 0; transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-in-up.active { opacity: 1; transform: translateY(0); }
+
+        /* コンタクトフォーム */
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--line-color);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--bg-color);
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--text-color);
+        }
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .submit-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: var(--text-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .submit-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* フッター */
+        footer { padding: 5rem 0; text-align: center; font-size: 0.9rem; color: #999; }
+        .footer-nav { margin-bottom: 2rem; }
+        .footer-nav a { color: #333; text-decoration: none; margin: 0 1rem; }
+
+        /* スマホ対応 */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .work-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .work-cat { align-self: flex-start; }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="lang-switch">
+        <a href="./" class="active">JP</a>
+        <a href="../en/">EN</a>
+    </div>
+
+    <header>
+        <div class="container">
+            <div id="header-sub" class="hero-sub"></div>
+            <h1 id="header-title" class="hero-title"></h1>
+            <div class="hero-logo" style="margin-top: 1rem; opacity: 0; transform: translateY(20px); animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.5s;">
+                <img src="../image/yamabiko_rogo.svg" alt="Yamabiko Loop ロゴ" style="max-width: 120px; height: auto;">
+            </div>
+            <div class="scroll-indicator"></div>
+        </div>
+    </header>
+
+    <section class="section section-gray">
+        <div class="container about-wrap fade-in-up">
+            <h2 id="about-title" class="about-title"></h2>
+            <div id="about-text" class="about-text"></div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div id="loading-msg" style="text-align: center; color: #999; padding: 2rem;">Loading Works...</div>
+            <div class="work-list" id="work-list">
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-gray" id="contact-section" style="padding-bottom: 6rem;">
+        <div class="container fade-in-up">
+            <div class="about-wrap" style="margin-bottom: 4rem;">
+                <h2 class="about-title">Contact</h2>
+            </div>
+            <form id="contact-form" class="contact-form" action="https://formspree.io/f/mlgggzpr" method="POST">
+                <div class="form-group">
+                    <label for="name">お名前 <span style="color: #c00;">*</span></label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="company">会社名</label>
+                    <input type="text" id="company" name="company">
+                </div>
+                <div class="form-group">
+                    <label for="email">メールアドレス <span style="color: #c00;">*</span></label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">お問い合わせ内容 <span style="color: #c00;">*</span></label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <div style="text-align: center;">
+                    <button type="submit" class="submit-btn">送信する</button>
+                </div>
+                <div id="form-message" style="display: none; text-align: center; margin-top: 2rem; padding: 1rem; border-radius: 4px;"></div>
+            </form>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container fade-in-up">
+            <div class="about-wrap" style="margin-bottom: 4rem;">
+                <h2 class="about-title">Company</h2>
+            </div>
+            <dl class="company-dl" id="company-profile">
+            </dl>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div id="footer-nav" class="footer-nav"></div>
+            <p>&copy; <span id="year"></span> <span id="footer-name"></span></p>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * ============================================================
+         * ★ 設定エリア (CONFIGURATION AREA)
+         * ここを編集するだけで、サイトの文字情報やデータを変更できます。
+         * ============================================================
+         */
+        const config = {
+            // ■ 基本情報
+            name: "Yamabiko Loop",           // サイト名・会社名
+            subTitle: "響き合う、世界の価値", // サイト名の下に表示されるサブタイトル
+
+            // ■ コンセプト（About）セクション
+            about: {
+                title: "Concept", // 見出し（Concept, About, Messageなど）
+                // 本文（改行したい場所には <br> を入れてください）
+                text: `
+                    「響き合う、世界の価値」<br><br>
+                    
+                    山に声を投げかければ、やまびこが返ってくる。<br>
+                    その響きは、一方通行ではなく、対話です。<br><br>
+                    
+                    Yamabiko Loopの\"Yamabiko\"（やまびこ）は、山に向かって発した声が反響して返ってくる現象を表す日本語です。<br>
+                    そして"Loop"（ループ）は、その響きが途切れることなく、新たな価値となって循環し続ける姿を表しています。<br><br>
+
+                    私たちの想いは、海を越えて世界へと響き渡り、そこで得た新たなインスピレーションを携えて、再び日本へと還っていく。<br>
+                    この終わりのない「価値の循環」こそが、Yamabiko Loopのアイデンティティです。<br><br>
+                    
+                    私たちは、単にモノを届ける貿易の枠を超え、製品に込められた文化や技術、作り手の情熱を深く理解し、日本市場へと繋ぎます。<br>
+                    一つの声が山々に響き渡り、やがて大きな輪を描くように優れた商品の魅力を日本へ、そしてその反響を再び世界へ。<br>
+                    響き合うたび、価値は深まり、世界はもっと近くなる。<br><br>
+
+                    Yamabiko Loopは、心と世界を繋ぐ、終わりのない物語を紡いでいきます。
+                `
+            },
+
+            // ■ 会社概要データ
+            // 必要な項目を { term: "項目名", desc: "内容" } の形式で追加・削除できます
+            company: [
+                { term: "屋号", desc: "Yamabiko Loop" },
+                { term: "設立", desc: "2025年" },
+                { term: "代表者", desc: "平野 翔斗" },
+                { term: "所在地", desc: "〒168-0064 東京都杉並区永福2" },
+                { term: "事業内容", desc: "海外製品の輸入販売、クラウドファンディング支援、日本市場進出コンサルティング、ECモール運営" }
+            ],
+
+            // ■ サービス・実績データ（最大18個まで表示可能）
+            // -------------------------------------------------------------
+            // 【重要】画像の準備について
+            // 同じ階層に「image」フォルダを作成し、その中に「image1.jpg」「image1.png」等
+            // という名前で画像を入れてください。（jpg/png両対応）
+            // ・1番目のデータ → image/image1.jpg または image1.png が表示されます
+            // ・2番目のデータ → image/image2.jpg または image2.png が表示されます
+            // ※画像ファイルが存在しない場合、ここのデータがあってもリストには表示されません。
+            // -------------------------------------------------------------
+            worksData: [
+                {
+                    year: "Service",
+                    title: "日本の市場調査",
+                    category: "Market Research",
+                    desc: `
+                        オンラインデータ分析と現地調査を組み合わせ、日本の消費者トレンド、競合環境、流通チャネルを包括的に把握。<br>
+                        これらの知見をもとに、貴社の成功に最適化された市場参入戦略と価格設定プランを策定します。
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "クラウドファンディング",
+                    category: "Crowdfunding",
+                    desc: `
+                        Makuake、Campfireなど日本のクラウドファンディングの主要プラットフォームにおいて、キャンペーン企画からページ制作、PR戦略の実行まで一貫したサポートを提供。<br>
+                        魅力的なリターン設計とターゲットを絞った広報活動により、高い達成率と大きなメディア注目を獲得します。
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "多様な販売チャネル展開",
+                    category: "E-Commerce",
+                    desc: `
+                        量販店や専門店との卸売パートナーシップ、国内メーカーとの協業プロジェクト、東京ギフトショーなど主要展示会への参加、<br>
+                        そしてAmazonやYahoo!ショッピングなど主要ECプラットフォームでの直販を組み合わせた、包括的な流通戦略を展開しています。
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "提携コンサルタント",
+                    category: "Partner Consultant",
+                    desc: `
+                        当社は、海外展開および国内マーケティングに豊富な実績を持つYubi-Ken Consulting と提携しています。（https://yubi-ken.com/en/）<br>
+                        専門家のノウハウを活かし、戦略立案から実行、東京ギフトショーへの出展サポートまでワンストップで支援。<br>
+                        複雑なプロジェクトも安心してお任せいただけます。
+                    `
+                }
+            ],
+
+            // ■ フッターリンク
+            links: []
+        };
+
+        /* ============================================================
+           以下、プログラム本体（通常は変更不要です）
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 基本情報反映
+            document.getElementById('header-title').innerHTML = config.name;
+            document.getElementById('header-sub').textContent = config.subTitle;
+            document.getElementById('footer-name').textContent = config.name;
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // アバウト反映
+            document.getElementById('about-title').textContent = config.about.title;
+            document.getElementById('about-text').innerHTML = config.about.text;
+
+            // 会社概要反映
+            const companyDl = document.getElementById('company-profile');
+            config.company.forEach(item => {
+                companyDl.innerHTML += `<dt>${item.term}</dt><dd>${item.desc}</dd>`;
+            });
+
+            // ★ 画像チェック＆リスト生成（非同期処理）
+            const listContainer = document.getElementById('work-list');
+            const loadingMsg = document.getElementById('loading-msg');
+            const maxImages = 18;
+            
+            // 画像チェック関数の定義（jpg/png両対応）
+            const checkImage = (index) => {
+                return new Promise((resolve) => {
+                    const extensions = ['jpg', 'png'];
+                    let tried = 0;
+                    const tryNext = () => {
+                        if (tried >= extensions.length) {
+                            resolve({ index, path: null, exists: false });
+                            return;
+                        }
+                        const imgPath = `../image/image${index}.${extensions[tried]}`;
+                        const img = new Image();
+                        img.onload = () => resolve({ index, path: imgPath, exists: true });
+                        img.onerror = () => { tried++; tryNext(); };
+                        img.src = imgPath;
+                    };
+                    tryNext();
+                });
+            };
+
+            // 1～18番までの画像を並列チェック
+            const checkPromises = [];
+            for (let i = 1; i <= maxImages; i++) {
+                checkPromises.push(checkImage(i));
+            }
+
+            // 全チェック完了後にリスト生成
+            const results = await Promise.all(checkPromises);
+            
+            loadingMsg.style.display = 'none'; // ロード完了
+
+            // worksDataから直接リスト生成
+            config.worksData.forEach((data, index) => {
+                const imgNum = index + 1;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'work-item-wrapper fade-in-up';
+                wrapper.innerHTML = `
+                    <div class="work-item">
+                        <div class="work-meta">
+                            <span class="work-year">${data.year}</span>
+                            <h3 class="work-title">${data.title}</h3>
+                        </div>
+                        <span class="work-cat">${data.category}</span>
+                    </div>
+                    <div class="work-detail">
+                        <div class="work-detail-inner">
+                            <img class="work-detail-img" src="../image/image${imgNum}.jpg" alt="${data.title}" onerror="this.onerror=null; this.src='../image/image${imgNum}.png'; this.onerror=function(){this.style.display='none'};">
+                            <p>${data.desc}</p>
+                        </div>
+                    </div>
+                `;
+                // クリックで折りたたみ開閉
+                wrapper.querySelector('.work-item').onclick = () => {
+                    wrapper.classList.toggle('open');
+                };
+                listContainer.appendChild(wrapper);
+            });
+
+            // フッターリンク
+            const footerNav = document.getElementById('footer-nav');
+            config.links.forEach(link => {
+                const a = document.createElement('a');
+                a.href = link.url;
+                a.textContent = link.label;
+                footerNav.appendChild(a);
+            });
+
+            // Intersection Observer (スクロール連動)
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            // 動的に追加された要素も含めて監視
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+            }, 100);
+
+            // フォームのAjax送信処理
+            const contactForm = document.getElementById('contact-form');
+            const formMessage = document.getElementById('form-message');
+
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const submitBtn = contactForm.querySelector('.submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '送信中...';
+
+                try {
+                    const response = await fetch(contactForm.action, {
+                        method: 'POST',
+                        body: new FormData(contactForm),
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (response.ok) {
+                        formMessage.style.display = 'block';
+                        formMessage.style.background = '#e8f5e9';
+                        formMessage.style.color = '#2e7d32';
+                        formMessage.textContent = 'お問い合わせありがとうございます。送信が完了しました。';
+                        contactForm.reset();
+                    } else {
+                        throw new Error('送信に失敗しました');
+                    }
+                } catch (error) {
+                    formMessage.style.display = 'block';
+                    formMessage.style.background = '#ffebee';
+                    formMessage.style.color = '#c62828';
+                    formMessage.textContent = '送信に失敗しました。時間をおいて再度お試しください。';
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+            });
+        });
+    </script>
+</body>
+</html>

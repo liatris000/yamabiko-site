@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="robots" content="index, follow">
+
+    <title>Yamabiko Loop - Crowdfunding Product Select</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-gray: #f2f2f2;
+            --line-color: #e0e0e0;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Lato', 'Shippori Mincho', serif;
+            color: var(--text-color);
+            background: var(--bg-color);
+            line-height: 2;
+        }
+        h1, h2, h3 { font-weight: 400; margin: 0; line-height: 1.2; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+        /* Language Switcher */
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 12px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .lang-switch a {
+            text-decoration: none;
+            color: #888;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .lang-switch a:hover {
+            color: #333;
+        }
+        .lang-switch a.active {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        header {
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        .hero-title {
+            font-size: 4rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .hero-sub {
+            font-size: 1rem;
+            color: #888;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.3s;
+        }
+
+        .scroll-indicator {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            height: 60px; width: 1px; background: #ddd; overflow: hidden;
+        }
+        .scroll-indicator::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: #000; animation: scrollDown 2s infinite;
+        }
+        @keyframes scrollDown { 0% { top: -100%; } 100% { top: 100%; } }
+
+        .section { padding: 10rem 0; }
+        .section-gray { background-color: var(--accent-gray); }
+
+        .about-wrap {
+            max-width: 800px; margin: 0 auto; text-align: center;
+        }
+        .about-title {
+            font-size: 2rem; margin-bottom: 3rem;
+            position: relative; display: inline-block;
+        }
+        .about-title::after {
+            content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 1px; background: #000;
+        }
+        .about-text { text-align: left; text-align-last: left; font-size: 1.1rem; }
+
+        .work-list { border-top: 1px solid var(--line-color); }
+        .work-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--line-color);
+            cursor: pointer;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .work-item:hover { background: #fafafa; }
+
+        .work-meta { flex: 1; }
+        .work-year { font-size: 0.9rem; color: #999; margin-bottom: 0.5rem; display: block; }
+        .work-title { font-size: 2rem; font-family: 'Shippori Mincho', serif; transition: 0.3s; }
+        .work-item:hover .work-title { padding-left: 20px; }
+
+        .work-cat {
+            font-size: 0.9rem; border: 1px solid #ddd; padding: 0.5rem 1.5rem; border-radius: 50px;
+            transition: 0.3s;
+        }
+        .work-item:hover .work-cat { background: #000; color: #fff; border-color: #000; }
+
+        /* Accordion */
+        .work-item-wrapper { border-bottom: 1px solid var(--line-color); }
+        .work-item { border-bottom: none; }
+        .work-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            padding: 0 0;
+            background: #fafafa;
+        }
+        .work-item-wrapper.open .work-detail {
+            max-height: 800px;
+            padding: 2rem 0;
+        }
+        .work-detail-inner {
+            padding: 0 2rem;
+            line-height: 2;
+        }
+        .work-detail-img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .work-item-wrapper.open .work-cat { background: #000; color: #fff; border-color: #000; }
+
+        .company-dl {
+            max-width: 800px; margin: 0 auto;
+            display: flex; flex-wrap: wrap;
+            border-top: 1px solid var(--line-color);
+        }
+        .company-dl dt {
+            width: 30%; padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+            font-weight: bold;
+        }
+        .company-dl dd {
+            width: 70%; margin: 0; padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+        }
+        @media (max-width: 768px) {
+            .company-dl dt, .company-dl dd { width: 100%; padding: 1rem 0; border: none; }
+            .company-dl dt { margin-top: 1rem; border-top: 1px solid #eee; }
+            .company-dl dd { border-bottom: 1px solid var(--line-color); }
+        }
+
+        .fade-in-up {
+            opacity: 0; transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-in-up.active { opacity: 1; transform: translateY(0); }
+
+        /* Contact Form */
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--line-color);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--bg-color);
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--text-color);
+        }
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .submit-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: var(--text-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .submit-btn:hover {
+            opacity: 0.8;
+        }
+
+        footer { padding: 5rem 0; text-align: center; font-size: 0.9rem; color: #999; }
+        .footer-nav { margin-bottom: 2rem; }
+        .footer-nav a { color: #333; text-decoration: none; margin: 0 1rem; }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .work-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .work-cat { align-self: flex-start; }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="lang-switch">
+        <a href="../ja/">JP</a>
+        <a href="./" class="active">EN</a>
+    </div>
+
+    <header>
+        <div class="container">
+            <div id="header-sub" class="hero-sub"></div>
+            <h1 id="header-title" class="hero-title"></h1>
+            <div class="hero-logo" style="margin-top: 1rem; opacity: 0; transform: translateY(20px); animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.5s;">
+                <img src="../image/yamabiko_rogo.svg" alt="Yamabiko Loop Logo" style="max-width: 120px; height: auto;">
+            </div>
+            <div class="scroll-indicator"></div>
+        </div>
+    </header>
+
+    <section class="section section-gray">
+        <div class="container about-wrap fade-in-up">
+            <h2 id="about-title" class="about-title"></h2>
+            <div id="about-text" class="about-text"></div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div id="loading-msg" style="text-align: center; color: #999; padding: 2rem;">Loading Services...</div>
+            <div class="work-list" id="work-list">
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-gray" id="contact-section" style="padding-bottom: 6rem;">
+        <div class="container fade-in-up">
+            <div class="about-wrap" style="margin-bottom: 4rem;">
+                <h2 class="about-title">Contact</h2>
+            </div>
+            <form id="contact-form" class="contact-form" action="https://formspree.io/f/mlgggzpr" method="POST">
+                <div class="form-group">
+                    <label for="name">Name <span style="color: #c00;">*</span></label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="company">Company</label>
+                    <input type="text" id="company" name="company">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email <span style="color: #c00;">*</span></label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message <span style="color: #c00;">*</span></label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <div style="text-align: center;">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+                <div id="form-message" style="display: none; text-align: center; margin-top: 2rem; padding: 1rem; border-radius: 4px;"></div>
+            </form>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container fade-in-up">
+            <div class="about-wrap" style="margin-bottom: 4rem;">
+                <h2 class="about-title">Company</h2>
+            </div>
+            <dl class="company-dl" id="company-profile">
+            </dl>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div id="footer-nav" class="footer-nav"></div>
+            <p>&copy; <span id="year"></span> <span id="footer-name"></span></p>
+        </div>
+    </footer>
+
+    <script>
+        const config = {
+            name: "Yamabiko Loop",
+            subTitle: "Resonating Value",
+
+            about: {
+                title: "Concept",
+                text: `
+                    "Resonating Value Across the World"<br><br>
+                    
+                    An echo is more than a reflection of sound; it is a dialogue between the caller and the mountain.<br>
+                    Yamabiko Loop takes its name from this Japanese concept of resonance.<br>
+                    While "Yamabiko" signifies the echo, "Loop" represents the eternal circulation of that energy, transforming it into lasting value.<br><br>
+
+                    Our journey is one of constant exchange: taking Japanese inspiration to the world and bringing global innovation back home.<br>
+                    This "Value Loop" is the core of who we are.<br><br>
+                    
+                    Moving beyond simple logistics, we act as a cultural and technical bridge.<br>
+                    We translate the passion of creators into a language that resonates with the Japanese market.<br><br>
+                    
+                    Like a voice echoing through a mountain range, we amplify the brilliance of exceptional products, creating a feedback loop that enriches both the source and the destination.<br>
+                    As we resonate, value grows, and the world becomes more connected.<br><br>
+
+                    Yamabiko Loop: Building an enduring legacy of connection.
+                `
+            },
+
+            company: [
+                { term: "Company", desc: "Yamabiko Loop" },
+                { term: "Founded", desc: "2025" },
+                { term: "Representative", desc: "Shoto Hirano" },
+                { term: "Address", desc: "Eifuku 2, Suginami-ku, Tokyo 168-0064, Japan" },
+                { term: "Business", desc: "Import & Sales of Overseas Products, Crowdfunding Support, Japan Market Entry Consulting, EC Mall Operations" }
+            ],
+
+            worksData: [
+                {
+                    year: "Service",
+                    title: "Japan Market Research",
+                    category: "Market Research",
+                    desc: `
+                        We combine online data analysis with on-the-ground research to comprehensively understand Japanese consumer trends, competitive landscapes, and distribution channels.<br>
+                        Based on these insights, we develop tailored market entry strategies and pricing plans optimized for your success.
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "Crowdfunding",
+                    category: "Crowdfunding",
+                    desc: `
+                        We provide end-to-end support on leading Japanese platforms such as Makuake and Campfire—from campaign planning and page design to PR strategy execution.<br>
+                        Through compelling reward structures and targeted outreach, we drive high success rates and generate significant media attention.
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "Multi-Channel Distribution",
+                    category: "E-Commerce",
+                    desc: `
+                        Yamabiko Loop employs a comprehensive distribution approach, combining wholesale partnerships with mass retailers and specialty shops,
+                        collaborative projects with Japanese manufacturers, participation in major trade shows such as Tokyo Gift Show,<br>
+                        and direct online sales through leading e-commerce platforms including Amazon and Yahoo! Shopping.
+                    `
+                },
+                {
+                    year: "Service",
+                    title: "Partner Consultant",
+                    category: "Partner Consultant",
+                    desc: `
+                        We partner with Yubi-Ken Consulting, which has extensive experience in overseas expansion and domestic marketing. (https://yubi-ken.com/en/)<br>
+                        Leveraging expert know-how, we provide one-stop support from strategy planning to execution, including Tokyo Gift Show exhibition support.<br>
+                        You can trust us with even complex projects.
+                    `
+                }
+            ],
+
+            links: []
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('header-title').innerHTML = config.name;
+            document.getElementById('header-sub').textContent = config.subTitle;
+            document.getElementById('footer-name').textContent = config.name;
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            document.getElementById('about-title').textContent = config.about.title;
+            document.getElementById('about-text').innerHTML = config.about.text;
+
+            const companyDl = document.getElementById('company-profile');
+            config.company.forEach(item => {
+                companyDl.innerHTML += `<dt>${item.term}</dt><dd>${item.desc}</dd>`;
+            });
+
+            const listContainer = document.getElementById('work-list');
+            const loadingMsg = document.getElementById('loading-msg');
+            const maxImages = 18;
+
+            // Image check function (supports jpg/png)
+            const checkImage = (index) => {
+                return new Promise((resolve) => {
+                    const extensions = ['jpg', 'png'];
+                    let tried = 0;
+                    const tryNext = () => {
+                        if (tried >= extensions.length) {
+                            resolve({ index, path: null, exists: false });
+                            return;
+                        }
+                        const imgPath = `../image/image${index}.${extensions[tried]}`;
+                        const img = new Image();
+                        img.onload = () => resolve({ index, path: imgPath, exists: true });
+                        img.onerror = () => { tried++; tryNext(); };
+                        img.src = imgPath;
+                    };
+                    tryNext();
+                });
+            };
+
+            const checkPromises = [];
+            for (let i = 1; i <= maxImages; i++) {
+                checkPromises.push(checkImage(i));
+            }
+
+            const results = await Promise.all(checkPromises);
+
+            loadingMsg.style.display = 'none';
+
+            // Generate list from worksData
+            config.worksData.forEach((data, index) => {
+                const imgNum = index + 1;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'work-item-wrapper fade-in-up';
+                wrapper.innerHTML = `
+                    <div class="work-item">
+                        <div class="work-meta">
+                            <span class="work-year">${data.year}</span>
+                            <h3 class="work-title">${data.title}</h3>
+                        </div>
+                        <span class="work-cat">${data.category}</span>
+                    </div>
+                    <div class="work-detail">
+                        <div class="work-detail-inner">
+                            <img class="work-detail-img" src="../image/image${imgNum}.jpg" alt="${data.title}" onerror="this.onerror=null; this.src='../image/image${imgNum}.png'; this.onerror=function(){this.style.display='none'};">
+                            <p>${data.desc}</p>
+                        </div>
+                    </div>
+                `;
+                // Toggle accordion on click
+                wrapper.querySelector('.work-item').onclick = () => {
+                    wrapper.classList.toggle('open');
+                };
+                listContainer.appendChild(wrapper);
+            });
+
+            const footerNav = document.getElementById('footer-nav');
+            config.links.forEach(link => {
+                const a = document.createElement('a');
+                a.href = link.url;
+                a.textContent = link.label;
+                footerNav.appendChild(a);
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+            }, 100);
+
+            // Form Ajax submission
+            const contactForm = document.getElementById('contact-form');
+            const formMessage = document.getElementById('form-message');
+
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const submitBtn = contactForm.querySelector('.submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+
+                try {
+                    const response = await fetch(contactForm.action, {
+                        method: 'POST',
+                        body: new FormData(contactForm),
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (response.ok) {
+                        formMessage.style.display = 'block';
+                        formMessage.style.background = '#e8f5e9';
+                        formMessage.style.color = '#2e7d32';
+                        formMessage.textContent = 'Thank you for your inquiry. Your message has been sent successfully.';
+                        contactForm.reset();
+                    } else {
+                        throw new Error('Submission failed');
+                    }
+                } catch (error) {
+                    formMessage.style.display = 'block';
+                    formMessage.style.background = '#ffebee';
+                    formMessage.style.color = '#c62828';
+                    formMessage.textContent = 'Failed to send. Please try again later.';
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            });
+        });
+    </script>
+</body>
+</html>
